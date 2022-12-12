@@ -211,6 +211,64 @@ void deseneaza()
     closegraph();
 }
 
+void deseneaza_matei(float d = 10, int screenWidth = 600, int screenHeight = 600)
+{
+    ///calc plane geometric values
+    vector<punct> punctePlan;
+
+    for(auto pct : puncte)
+    {
+        float x = (pct.x / pct.z) * d;
+        float y = (pct.y / pct.z) * d;
+
+        cout<<pct.x<<' '<<pct.y<<' '<<pct.z<<" becomes "<<x<<' '<<y<<endl;
+
+        punctePlan.push_back( punct(x, y, 0) );
+    }
+
+    cout<<"\n\n";
+
+
+    ///calc screen values
+    vector< pair<int, int> > puncteEcran;
+
+    float minX = 1e5, maxX = -1e5;
+    float minY = 1e5, maxY = -1e5;
+
+    for(auto pct : punctePlan)
+    {
+        minX = min(minX, pct.x);
+        maxX = max(maxX, pct.x);
+
+        minY = min(minY, pct.y);
+        maxY = max(maxY, pct.y);
+    }
+
+    for(auto pct : punctePlan)
+    {
+        int x = ( (pct.x - minX) / (maxX - minX) ) * (float)screenHeight;
+
+        int y = ( (pct.y - minY) / (maxY - minY) ) * (float)screenWidth;
+
+        cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
+
+        puncteEcran.push_back( {x, y} );
+    }
+
+    initwindow(screenWidth, screenHeight);
+
+    for(int i=0;i<(int)muchii.size();i++)
+    {
+        int id1 = muchii[i].first;
+        int id2 = muchii[i].second;
+
+        line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
+    }
+
+    getch();
+    closegraph();
+}
+
 void test()
 {
     ifstream fin("in.txt");
@@ -228,7 +286,10 @@ void test()
         muchii.push_back({x, y});
     }
 
-    deseneaza_inteligent(10);
+    roteste(0.35, 0.1);
+
+    deseneaza_matei();
+    //deseneaza_inteligent(10);
     //deseneaza();
 }
 
