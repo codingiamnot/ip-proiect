@@ -22,6 +22,8 @@ int n, m;
 vector<punct> puncte,puncte_ecran;
 vector<pair<int, int>> muchii;
 
+float procentDeOcupareEcran = 0.5;
+
 void citire(string &address)
 {
     FILE *input = fopen(address.c_str(), "rb");
@@ -135,6 +137,14 @@ void roteste(float alfa,float beta)
     translateaza(G.x,G.y,G.z);
 }
 
+void zoom(float dx)
+{
+    procentDeOcupareEcran += dx;
+    procentDeOcupareEcran = max((float)0, procentDeOcupareEcran);
+    procentDeOcupareEcran = min((float)1, procentDeOcupareEcran);
+}
+
+/*
 void zoom(float x)
 {
     punct G=centruGreutate();
@@ -147,6 +157,7 @@ void zoom(float x)
     }
     translateaza(G.x*x,G.y*x,G.z*x);
 }
+*/
 
 void translateaza2(float dx, float dy, float dz)
 {
@@ -244,11 +255,16 @@ void deseneaza_matei(float d = 10, int screenWidth = 600, int screenHeight = 600
         maxY = max(maxY, pct.y);
     }
 
+    float midX = (minX + maxX) / 2;
+    float midY = (minY + maxY) / 2;
+
     for(auto pct : punctePlan)
     {
         int x = ( (pct.x - minX) / (maxX - minX) ) * (float)screenHeight;
+        //int x = ((pct.x - midX) / (maxX - midX)) * (float)screenHeight + screenHeight/2;
 
         int y = ( (pct.y - minY) / (maxY - minY) ) * (float)screenWidth;
+        //int y = ((pct.y - midY) / (maxY - midY)) * (float)screenWidth + screenWidth / 2;
 
         cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
 
