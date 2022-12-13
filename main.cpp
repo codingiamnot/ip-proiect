@@ -26,6 +26,12 @@ vector<pair<int, int>> muchii;
 
 float procentDeOcupareEcran = 0.75;
 
+float rotatieX = 0, rotatieY =0;
+
+
+
+bool animOn = true;
+
 void citire(string &address)
 {
     FILE *input = fopen(address.c_str(), "rb");
@@ -131,13 +137,18 @@ void rotestey(float alfa)
     }
 }
 
-void roteste(float alfa,float beta)
+void roteste(float alfa, float beta)
 {
+    /*
     punct G=centruGreutate();
     translateaza(-G.x,-G.y,-G.z);
     rotestex(alfa);
     rotestey(beta);
     translateaza(G.x,G.y,G.z);
+    */
+
+    rotatieX += alfa;
+    rotatieY += beta;
 }
 
 void zoom(float dx)
@@ -150,10 +161,67 @@ void zoom(float dx)
 
 void deseneaza(float d = 10)
 {
+    ///calc rotatie
+
+    vector<punct> puncteRotite;
+    punct g = centruGreutate();
+
+    cout<<rotatieX<<' '<<rotatieY<<endl;
+
+    for(auto pct : puncte)
+    {
+        cout<<pct.x<<' ';
+
+        float x = pct.x , y = pct.y, z = pct.z;
+
+        ///translatam
+        x -= g.x;
+        y -= g.y;
+        z -= g.z;
+
+        cout<<x<<' ';
+
+        float nx, ny, nz;
+
+        ///rotim x
+        nx = x;
+        ny = y * cos(rotatieX) - z * sin(rotatieX);
+        nz = y * sin(rotatieX) + z * cos(rotatieX);
+
+        x = nx;
+        y = ny;
+        z = nz;
+
+        cout<<x<<' ';
+
+
+        ///rotim y
+        nx = x * cos(rotatieY) + z * sin(rotatieY);
+        ny = y;
+        nz = (-x) * sin(rotatieY) + z * cos(rotatieY);
+
+        x = nx;
+        y = ny;
+        z = nz;
+
+        cout<<x<<' ';
+
+        ///translatam
+        x += g.x;
+        y += g.y;
+        z += g.z;
+
+        cout<<x<<endl;
+        //cout<<x<<' '<<y<<' '<<z<<endl;
+
+        puncteRotite.push_back(punct(x, y, z));
+    }
+
+
     ///calc plane geometric values
     vector<punct> punctePlan;
 
-    for(auto pct : puncte)
+    for(auto pct : puncteRotite)
     {
         float x = (pct.x / pct.z) * d;
         float y = (pct.y / pct.z) * d;
@@ -193,7 +261,7 @@ void deseneaza(float d = 10)
         puncteEcran.push_back( {x, y} );
     }
 
-    initwindow(screenWidth, screenHeight);
+    //initwindow(screenWidth, screenHeight);
 
     for(int i=0;i<(int)muchii.size();i++)
     {
@@ -203,12 +271,40 @@ void deseneaza(float d = 10)
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
     }
 
-    getch();
-    closegraph();
+    //getch();
+    //closegraph();
 }
 
 void test()
 {
+    ifstream fin("in.txt");
+    int x,y,z;
+    fin>>n>>m;
+    for(int i=1 ; i<=n ; i++)
+    {
+        fin>>x>>y>>z;
+        puncte.push_back(punct(x, y, z));
+    }
+
+    initwindow(screenWidth, screenHeight);
+
+    for(int i=1 ; i<=m ; i++)
+    {
+        fin>>x>>y;
+        muchii.push_back({x, y});
+    }
+
+    roteste(0.35, 0.1);
+
+    deseneaza();
+
+    getch();
+    closegraph();
+}
+
+void mainLoop()
+{
+    ///TODO
     ifstream fin("in.txt");
     int x,y,z;
     fin>>n>>m;
@@ -224,13 +320,24 @@ void test()
         muchii.push_back({x, y});
     }
 
-    roteste(0.35, 0.1);
+    initwindow(screenWidth, screenHeight);
 
-    deseneaza();
+
+    while(true)
+    {
+        if(animOn)
+            roteste(0.1, 0.1);
+
+        cleardevice();
+
+        deseneaza();
+        this_thread::sleep_for( chrono::milliseconds( 100 / 3 ) );
+    }
 }
 
 int main()
 {
-    test();
+    //test();
+    mainLoop();
     return 0;
 }
