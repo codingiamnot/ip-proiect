@@ -4,6 +4,8 @@
 
 using namespace std;
 
+const int screenWidth = 600, screenHeight = 600;
+
 struct punct
 {
     float x, y, z;
@@ -19,7 +21,7 @@ struct punct
 };
 
 int n, m;
-vector<punct> puncte,puncte_ecran;
+vector<punct> puncte;
 vector<pair<int, int>> muchii;
 
 float procentDeOcupareEcran = 0.75;
@@ -108,6 +110,7 @@ void translateaza(float dx, float dy, float dz)
     }
 }
 
+
 void rotestex(float alfa)
 {
     for(int i=0 ; i<n ; i++)
@@ -144,85 +147,8 @@ void zoom(float dx)
     procentDeOcupareEcran = min((float)1, procentDeOcupareEcran);
 }
 
-/*
-void zoom(float x)
-{
-    punct G=centruGreutate();
-    translateaza(-G.x,-G.y,-G.z);
-    for(int i=0 ; i<n ; i++)
-    {
-        puncte[i].x*=x;
-        puncte[i].y*=x;
-        puncte[i].z*=x;
-    }
-    translateaza(G.x*x,G.y*x,G.z*x);
-}
-*/
 
-void translateaza2(float dx, float dy, float dz)
-{
-    for(int i=0; i<n; i++)
-    {
-        puncte_ecran[i].x += dx;
-        puncte_ecran[i].y += dy;
-        puncte_ecran[i].z += dz;
-    }
-}
-
-
-void deseneaza_inteligent(float d)
-{
-    puncte_ecran.clear();
-    puncte_ecran.resize(puncte.size());
-
-
-    zoom(500);
-    translateaza(-300,-200,100);
-    roteste(0,0);
-    for(int i=0 ; i<n ; i++)
-    {
-        puncte_ecran[i].x=puncte[i].x*d/puncte[i].z;
-        puncte_ecran[i].y=puncte[i].y*d/puncte[i].z;
-    }
-
-    translateaza2(100,100,0);
-    initwindow(800,600);
-    for(int i=0 ; i<m ; i++)
-        line(puncte_ecran[muchii[i].first].x, puncte_ecran[muchii[i].first].y, puncte_ecran[muchii[i].second].x, puncte_ecran[muchii[i].second].y);
-
-    getch();
-    closegraph();
-}
-
-void deseneaza()
-{
-    initwindow(800,600);
-
-    translateaza(2,2,0);
-    zoom(125);
-    roteste(0.23,0.1);
-    for(int j=2 ; j<500 ; j++)
-    {
-        roteste(0.1,0.2);
-        /// setcolor(WHITE);
-        for(int i=0 ; i<m ; i++)
-            line(puncte[muchii[i].first].x, puncte[muchii[i].first].y, puncte[muchii[i].second].x, puncte[muchii[i].second].y);
-        roteste(0.3,0.2);
-        /// setcolor(WHITE);
-        for(int i=0 ; i<m ; i++)
-            line(puncte[muchii[i].first].x, puncte[muchii[i].first].y, puncte[muchii[i].second].x, puncte[muchii[i].second].y);
-        ///delay(5);
-        ///setcolor(BLACK);
-
-        //for(int i=0 ; i<m ; i++)
-          //  line(puncte[muchii[i].first].x, puncte[muchii[i].first].y, puncte[muchii[i].second].x, puncte[muchii[i].second].y);
-    }
-
-    getch();
-    closegraph();
-}
-
-void deseneaza_matei(float d = 10, int screenWidth = 600, int screenHeight = 600)
+void deseneaza(float d = 10)
 {
     ///calc plane geometric values
     vector<punct> punctePlan;
@@ -255,15 +181,11 @@ void deseneaza_matei(float d = 10, int screenWidth = 600, int screenHeight = 600
         maxY = max(maxY, pct.y);
     }
 
-    float midX = (minX + maxX) / 2;
-    float midY = (minY + maxY) / 2;
+    ///maybe TODO, screen independent
 
     for(auto pct : punctePlan)
     {
-        //int x = ( (pct.x - minX) / (maxX - minX) ) * (float)screenHeight;
         int x = ( ((pct.x - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
-
-        //int y = ( (pct.y - minY) / (maxY - minY) ) * (float)screenWidth;
         int y = ( ((pct.y - minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
 
         cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
@@ -304,9 +226,7 @@ void test()
 
     roteste(0.35, 0.1);
 
-    deseneaza_matei();
-    //deseneaza_inteligent(10);
-    //deseneaza();
+    deseneaza();
 }
 
 int main()
