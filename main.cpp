@@ -22,7 +22,7 @@ int n, m;
 vector<punct> puncte,puncte_ecran;
 vector<pair<int, int>> muchii;
 
-float procentDeOcupareEcran = 0.5;
+float procentDeOcupareEcran = 0.75;
 
 void citire(string &address)
 {
@@ -260,11 +260,11 @@ void deseneaza_matei(float d = 10, int screenWidth = 600, int screenHeight = 600
 
     for(auto pct : punctePlan)
     {
-        int x = ( (pct.x - minX) / (maxX - minX) ) * (float)screenHeight;
-        //int x = ((pct.x - midX) / (maxX - midX)) * (float)screenHeight + screenHeight/2;
+        //int x = ( (pct.x - minX) / (maxX - minX) ) * (float)screenHeight;
+        int x = ( ((pct.x - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
 
-        int y = ( (pct.y - minY) / (maxY - minY) ) * (float)screenWidth;
-        //int y = ((pct.y - midY) / (maxY - midY)) * (float)screenWidth + screenWidth / 2;
+        //int y = ( (pct.y - minY) / (maxY - minY) ) * (float)screenWidth;
+        int y = ( ((pct.y - minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
 
         cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
 
