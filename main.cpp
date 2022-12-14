@@ -21,8 +21,11 @@ struct punct
 };
 
 int n, m;
+
 vector<punct> puncte;
 vector<pair<int, int>> muchii;
+
+vector<bool> viz;
 
 float procentDeOcupareEcran = 0.75;
 
@@ -158,28 +161,77 @@ void zoom(float dx)
     procentDeOcupareEcran = min((float)1, procentDeOcupareEcran);
 }
 
+bool compZ(pair<punct, int> a, pair<punct, int> b)
+{
+    return a.first.z < b.first.z;
+}
+
+bool isInside(punct x, vector<punct> &v)
+{
+    return false;
+}
+
+void reorder(vector<punct> &v)
+{
+    vector<punct> ans;
+
+
+}
+
+void calcViz()
+{
+    viz.resize((int)puncte.size());
+
+    vector< pair<punct, int> > v;
+
+    vector< punct > poligon;
+
+    for(int i=0; i<(int)puncte.size(); i++)
+        v.push_back( {puncte[i], i} );
+
+    sort(v.begin(), v.end(), compZ);
+
+    for(auto pct : v)
+    {
+        if(isInside(pct.first, poligon))
+            viz[ pct.second ] = false;
+
+        else
+        {
+            viz[ pct.second ] = true;
+            poligon.push_back( pct.first );
+
+            reorder(poligon);
+        }
+    }
+
+    /*
+    for(int i=0; i<(int)v.size(); i++)
+        cout<<viz[i];
+    cout<<endl;
+    */
+}
+
 
 void deseneaza(float d = 10)
 {
+    ///calc puncte vizibile
+    calcViz();
+
     ///calc rotatie
 
     vector<punct> puncteRotite;
     punct g = centruGreutate();
 
-    cout<<rotatieX<<' '<<rotatieY<<endl;
 
     for(auto pct : puncte)
     {
-        cout<<pct.x<<' ';
-
         float x = pct.x , y = pct.y, z = pct.z;
 
         ///translatam
         x -= g.x;
         y -= g.y;
         z -= g.z;
-
-        cout<<x<<' ';
 
         float nx, ny, nz;
 
@@ -192,8 +244,6 @@ void deseneaza(float d = 10)
         y = ny;
         z = nz;
 
-        cout<<x<<' ';
-
 
         ///rotim y
         nx = x * cos(rotatieY) + z * sin(rotatieY);
@@ -204,15 +254,11 @@ void deseneaza(float d = 10)
         y = ny;
         z = nz;
 
-        cout<<x<<' ';
 
         ///translatam
         x += g.x;
         y += g.y;
         z += g.z;
-
-        cout<<x<<endl;
-        //cout<<x<<' '<<y<<' '<<z<<endl;
 
         puncteRotite.push_back(punct(x, y, z));
     }
@@ -226,13 +272,8 @@ void deseneaza(float d = 10)
         float x = (pct.x / pct.z) * d;
         float y = (pct.y / pct.z) * d;
 
-        cout<<pct.x<<' '<<pct.y<<' '<<pct.z<<" becomes "<<x<<' '<<y<<endl;
-
         punctePlan.push_back( punct(x, y, 0) );
     }
-
-    cout<<"\n\n";
-
 
     ///calc screen values
     vector< pair<int, int> > puncteEcran;
@@ -256,7 +297,7 @@ void deseneaza(float d = 10)
         int x = ( ((pct.x - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
         int y = ( ((pct.y - minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
 
-        cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
+        //cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
 
         puncteEcran.push_back( {x, y} );
     }
@@ -267,6 +308,9 @@ void deseneaza(float d = 10)
     {
         int id1 = muchii[i].first;
         int id2 = muchii[i].second;
+
+        if(!viz[id1] || !viz[id2])
+            continue;
 
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
     }
@@ -294,7 +338,7 @@ void test()
         muchii.push_back({x, y});
     }
 
-    roteste(0.35, 0.1);
+    roteste(0.1, 0.1);
 
     deseneaza();
 
@@ -326,7 +370,7 @@ void mainLoop()
     while(true)
     {
         if(animOn)
-            roteste(0.1, 0.1);
+            roteste(0.1, 0.05);
 
         cleardevice();
 
