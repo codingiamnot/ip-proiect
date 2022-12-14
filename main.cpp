@@ -278,9 +278,11 @@ void deseneaza(float d = 10)
     ///calc screen values
     vector< pair<int, int> > puncteEcran;
 
-    float minX = 1e5, maxX = -1e5;
-    float minY = 1e5, maxY = -1e5;
+    ///TODO maybe change back
+    float minX = -5, maxX = 5;
+    float minY = -5, maxY = 5;
 
+    /*
     for(auto pct : punctePlan)
     {
         minX = min(minX, pct.x);
@@ -289,6 +291,7 @@ void deseneaza(float d = 10)
         minY = min(minY, pct.y);
         maxY = max(maxY, pct.y);
     }
+    */
 
     ///maybe TODO, screen independent
 
@@ -370,7 +373,7 @@ void mainLoop()
     while(true)
     {
         if(animOn)
-            roteste(0.1, 0.05);
+            roteste(0.1, 0.1);
 
         cleardevice();
 
