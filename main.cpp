@@ -350,45 +350,6 @@ void test()
     closegraph();
 }
 
-void mainLoop()
-{
-    ///TODO
-    ifstream fin("in.txt");
-    int x,y,z;
-    fin>>n>>m;
-    for(int i=1 ; i<=n ; i++)
-    {
-        fin>>x>>y>>z;
-        puncte.push_back(punct(x, y, z));
-    }
-
-    for(int i=1 ; i<=m ; i++)
-    {
-        fin>>x>>y;
-        muchii.push_back({x, y});
-    }
-
-    ///initwindow(screenWidth , screenHeight);
-
-
-    while(true)
-    {
-        if(animOn)
-            roteste(0.1, 0.1);
-
-        ///cleardevice();
-
-
-        setcolor(WHITE);
-        deseneaza();
-
-        this_thread::sleep_for( chrono::milliseconds( 100 / 3 ) );
-
-        setcolor(DARKGRAY);
-        deseneaza();
-    }
-}
-
 struct button
 {
     int x1,y1,x2,y2;
@@ -436,33 +397,6 @@ struct button
     }
 };
 
-void meniu()  ///nu e util
-{
-    initwindow(screenWidth + 200, screenHeight);
-
-    setcolor(DARKGRAY);
-    line(screenWidth,0,screenWidth,screenHeight);
-    setfillstyle(SOLID_FILL, DARKGRAY);
-    floodfill(screenWidth-1,1,DARKGRAY);
-
-    setfillstyle(SOLID_FILL, LIGHTGRAY);
-    floodfill(screenWidth+1,1,DARKGRAY);
-
-    button b1=button(screenWidth+50,50,screenWidth+150,100,"Draw point");
-    b1.draw();
-
-    button b2=button(screenWidth+50,150,screenWidth+150,200,"Draw edge");
-    b2.draw();
-
-    button b3=button(screenWidth+30,screenHeight-100,screenWidth+170,screenHeight-50,"Toggle animation");
-    b3.draw();
-
-    setcolor(LIGHTGRAY);
-    mainLoop();
-
-    getch();
-    closegraph();
-}
 
 void drawError(const string &text1, const string &text2)
 {
@@ -488,43 +422,6 @@ void closeError()
     if(ismouseclick(WM_LBUTTONDOWN))
         clearmouseclick(WM_LBUTTONDOWN) , closegraph(errorScreen) , errorScreen=0;
     setcurrentwindow(mainScreeen);
-}
-
-void coverError() //nu ma e bun
-{
-    setfillstyle(SOLID_FILL,LIGHTGRAY);
-    bar(screenWidth , screenHeight - 100 , screenWidth + 200 , screenHeight);
-}
-
-void drawPoint2() ///gresit
-{
-    if(toggleAnimation)
-    {
-        drawError("You can't draw ","during animation!\n");
-        return;
-    }
-
-    bool drawn=0;
-    clock_t currTime=0;
-
-    while(!drawn)
-    {
-        if(ismouseclick(WM_LBUTTONDOWN))
-        {
-            clearmouseclick(WM_LBUTTONDOWN);
-            int x=mousex(), y=mousey();
-            if(x>=screenWidth && x<=screenWidth+200 && y>=0 && y<=screenHeight)
-                drawError("You can't draw ","a point there!\n") , currTime=clock();
-            else
-            {
-                drawn = 1;
-                coverError();
-                ///functie de desenare
-            }
-        }
-        if((float)clock()/CLOCKS_PER_SEC - (float)currTime/CLOCKS_PER_SEC >= 1.5)
-                coverError();
-    }
 }
 
 void drawPoint()
