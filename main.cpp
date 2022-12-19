@@ -536,6 +536,15 @@ void drawEdge()
     ///
 }
 
+void rotesteTaste(float x, float y)
+{
+    setcolor(DARKGRAY);
+    deseneaza();
+    roteste(x , y);
+    setcolor(WHITE);
+    deseneaza();
+}
+
 void program()
 {
     mainScreeen = initwindow(screenWidth + 200, screenHeight, "3D Visualizer", 200, 25);
@@ -561,12 +570,24 @@ void program()
     {
         if(toggleAnimation)
         {
-            if(animOn)
-                roteste(0.1, 0.1);
+            roteste(0.1, 0.1);
             setcolor(WHITE);
             deseneaza();
         }
 
+        if(kbhit() && (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_DOWN)))
+        {
+            if(toggleAnimation && !errorScreen)
+                drawError("You can't rotate object","during animation!");
+            else if(GetAsyncKeyState(VK_LEFT))
+                rotesteTaste(0 , 0.1);
+            else if(GetAsyncKeyState(VK_RIGHT))
+                rotesteTaste(0 , -0.1);
+            else if(GetAsyncKeyState(VK_UP))
+                rotesteTaste(0.1 , 0);
+            else if(GetAsyncKeyState(VK_DOWN))
+                rotesteTaste(-0.1 , 0);
+        }
 
         if(errorScreen)
             closeError();
