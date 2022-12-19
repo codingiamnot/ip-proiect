@@ -5,7 +5,12 @@
 
 using namespace std;
 
+vector<long double> dy;
+
+
+
 const int screenWidth = 600, screenHeight = 600;
+long double er = 1e-7;
 
 struct punct
 {
@@ -167,19 +172,84 @@ bool compZ(pair<punct, int> a, pair<punct, int> b)
     return a.first.z < b.first.z;
 }
 
-bool isInside(punct x, vector<punct> &v)
+bool isInside(punct a, vector<punct> &v)
 {
-    return false;
+    int ans = 0;
+
+    for(auto pct : v)
+        if(pct.x > a.x && abs(pct.y - a.y) <= er)
+            ans ++;
+
+
+    for(int i=0; i<(int)v.size()-1; i++)
+    {
+        if( abs(v[i].x - v[i+1].x) <= er )
+        {
+            if( min(v[i].y, v[i+1].y) + er <= a.y && a.y + er <= max(v[i].y, v[i].y) )
+                ans++;
+        }
+
+        else
+        {
+            long double dy = (v[i].y - v[i+1].y) / (v[i].x - v[i+1].x);
+            long double x = (a.y - v[i].y) / dy + v[i].x;
+
+            if( min(v[i].x, v[i+1].x) + er <= x && x + er <= min(v[i].x, v[i+1].x) )
+                ans++;
+        }
+
+    }
+
+    return (ans % 2);
+}
+
+bool compPanta(int i, int j)
+{
+    return dy[i] < dy[j];
 }
 
 void reorder(vector<punct> &v)
 {
+    int minP = 0;
+    for(int i=1; i<(int)v.size(); i++)
+    {
+        if(v[i].x < v[minP].x || (abs(v[i].x - v[minP].x) <= er && v[i].y < v[minP].y) )
+            minP = i;
+    }
+
+    dy.clear();
+    for(int i=0; i<(int)v.size(); i++)
+    {
+        if(i == minP)
+            dy.push_back(-1e10);
+
+        else if(v[minP].x == v[i].x)
+        {
+            if(v[i].y > v[minP].y)
+                dy.push_back(1e9);
+            else
+                dy.push_back(-1e9);
+        }
+
+        else
+            dy.push_back( (v[i].y - v[minP].y) / (v[i].x - v[minP].x ) );
+    }
+
+    vector<int> perm;
+    for(int i=0; i<(int)v.size(); i++)
+        perm.push_back(i);
+    sort(perm.begin(), perm.end(), compPanta);
+
     vector<punct> ans;
 
+    for(int i=0; i<(int)v.size(); i++)
+        ans.push_back(v[i]);
 
+    v = ans;
 }
 
-void calcViz()
+
+void calcViz(vector<punct> &puncte)
 {
     viz.resize((int)puncte.size());
 
@@ -216,9 +286,6 @@ void calcViz()
 
 void deseneaza(float d = 10)
 {
-    ///calc puncte vizibile
-    calcViz();
-
     ///calc rotatie
 
     vector<punct> puncteRotite;
@@ -264,6 +331,8 @@ void deseneaza(float d = 10)
         puncteRotite.push_back(punct(x, y, z));
     }
 
+    //calcViz(puncte);
+
 
     ///calc plane geometric values
     vector<punct> punctePlan;
@@ -273,7 +342,7 @@ void deseneaza(float d = 10)
         float x = (pct.x / pct.z) * d;
         float y = (pct.y / pct.z) * d;
 
-        punctePlan.push_back( punct(x, y, 0) );
+        punctePlan.push_back( punct(x, y, pct.z) );
     }
 
     ///calc screen values
@@ -313,8 +382,8 @@ void deseneaza(float d = 10)
         int id1 = muchii[i].first;
         int id2 = muchii[i].second;
 
-        if(!viz[id1] || !viz[id2])
-            continue;
+        //if(!viz[id1] || !viz[id2])
+          //  continue;
 
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
     }
