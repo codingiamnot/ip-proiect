@@ -35,7 +35,7 @@ vector<bool> viz;
 
 float procentDeOcupareEcran = 0.75;
 
-float rotatieX = 0, rotatieY =0;
+float rotatieX = 0, rotatieY =0 , rotatieZ = 0;
 
 bool animOn = true, toggleAnimation = true;
 
@@ -117,7 +117,7 @@ punct centruGreutate()
 
 void translateaza(float dx, float dy, float dz)
 {
-    for(int i=0; i<n; i++)
+    for(int i=0; i<puncte.size(); i++)
     {
         puncte[i].x += dx;
         puncte[i].y += dy;
@@ -146,7 +146,7 @@ void rotestey(float alfa)
     }
 }
 
-void roteste(float alfa, float beta)
+void roteste(float alfa, float beta, float omega)
 {
     /*
     punct G=centruGreutate();
@@ -158,6 +158,7 @@ void roteste(float alfa, float beta)
 
     rotatieX += alfa;
     rotatieY += beta;
+    rotatieZ += omega;
 }
 
 void zoom(float dx)
@@ -322,6 +323,14 @@ void deseneaza(float d = 10)
         y = ny;
         z = nz;
 
+        ///rotim z
+        nx = x * cos(rotatieZ) - y * sin(rotatieZ);
+        ny = x * sin(rotatieZ) + y * cos(rotatieZ);
+        nz = z;
+
+        x = nx;
+        y = ny;
+        z = nz;
 
         ///translatam
         x += g.x;
@@ -329,10 +338,16 @@ void deseneaza(float d = 10)
         z += g.z;
 
         puncteRotite.push_back(punct(x, y, z));
+        /*pct.x=x;
+        pct.y=y;
+        pct.z=z;*/
+        //pct=punct(x,y,z);
     }
 
     //calcViz(puncte);
 
+    for(int i=0 ; i<puncte.size() ; i++)
+        puncte[i]=puncteRotite[i];
 
     ///calc plane geometric values
     vector<punct> punctePlan;
@@ -388,36 +403,16 @@ void deseneaza(float d = 10)
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
     }
 
+    for(auto pct : puncteEcran)
+    {
+        putpixel((int)pct.first, (int)pct.second, getcolor());
+    }
+
     //getch();
     //closegraph();
 }
 
-void test()
-{
-    ifstream fin("in.txt");
-    int x,y,z;
-    fin>>n>>m;
-    for(int i=1 ; i<=n ; i++)
-    {
-        fin>>x>>y>>z;
-        puncte.push_back(punct(x, y, z));
-    }
 
-    initwindow(screenWidth, screenHeight);
-
-    for(int i=1 ; i<=m ; i++)
-    {
-        fin>>x>>y;
-        muchii.push_back({x, y});
-    }
-
-    roteste(0.1, 0.1);
-
-    deseneaza();
-
-    getch();
-    closegraph();
-}
 
 struct button
 {
@@ -511,14 +506,23 @@ void drawPoint()
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             clearmouseclick(WM_LBUTTONDOWN);
-            int x=mousex(), y=mousey();
+            float x=mousex(), y=mousey();
 
             if(x>=screenWidth && x<=screenWidth+200 && y>=0 && y<=screenHeight)
                 drawError("You can't draw ","a point there!\n");
             else
             {
                 drawn = 1;
-                ///functie de desenare
+                punct G=centruGreutate();
+
+                x = ((x - screenHeight/2 ) / procentDeOcupareEcran / (float)screenHeight + 0.5 ) * 10 - 5;
+                y = ((y - screenWidth/2 ) / procentDeOcupareEcran / (float)screenWidth + 0.5 ) * 10 - 5;
+
+                 x = x / 10 * G.z;
+                y = y / 10 * G.z;
+
+                puncte.push_back(punct(x,y,G.z));
+
             }
         }
 
@@ -536,11 +540,30 @@ void drawEdge()
     ///
 }
 
-void rotesteTaste(float x, float y)
+void rotesteTaste(float x, float y, float z)
 {
+    rotatieX = 0;
+    rotatieY = 0;
+    rotatieZ = 0;
     setcolor(DARKGRAY);
     deseneaza();
-    roteste(x , y);
+
+    rotatieX = x;
+    rotatieY = y;
+    rotatieZ = z;
+    setcolor(WHITE);
+    deseneaza();
+}
+
+void translateazaTaste(float x, float y, float z)
+{
+    rotatieX = 0;
+    rotatieY = 0;
+    rotatieZ = 0;
+    setcolor(DARKGRAY);
+    deseneaza();
+
+    translateaza(x,y,z);
     setcolor(WHITE);
     deseneaza();
 }
@@ -570,23 +593,47 @@ void program()
     {
         if(toggleAnimation)
         {
-            roteste(0.1, 0.1);
+            //roteste(0.1, 0.1);
+            rotatieX=0.1;
+            rotatieY=0.1;
             setcolor(WHITE);
             deseneaza();
         }
 
-        if(kbhit() && (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_DOWN)))
+        if(kbhit() && (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(VK_LSHIFT) || GetAsyncKeyState(VK_RSHIFT)))
         {
             if(toggleAnimation && !errorScreen)
                 drawError("You can't rotate object","during animation!");
             else if(GetAsyncKeyState(VK_LEFT))
-                rotesteTaste(0 , 0.1);
+                rotesteTaste(0 , 0.1 , 0);
             else if(GetAsyncKeyState(VK_RIGHT))
-                rotesteTaste(0 , -0.1);
+                rotesteTaste(0 , -0.1 , 0);
             else if(GetAsyncKeyState(VK_UP))
-                rotesteTaste(0.1 , 0);
+                rotesteTaste(-0.1 , 0 , 0);
             else if(GetAsyncKeyState(VK_DOWN))
-                rotesteTaste(-0.1 , 0);
+                rotesteTaste(0.1 , 0 , 0);
+            else if(GetAsyncKeyState(VK_LSHIFT))
+                rotesteTaste(0 , 0 , -0.1);
+            else if(GetAsyncKeyState(VK_RSHIFT))
+                rotesteTaste(0 , 0 , 0.1);
+        }
+
+        if(kbhit() && (GetAsyncKeyState(0x57) || GetAsyncKeyState(0x53) || GetAsyncKeyState(0x41) || GetAsyncKeyState(0x44) || GetAsyncKeyState(0x51) || GetAsyncKeyState(0x45)))
+        {
+             if(toggleAnimation && !errorScreen)
+                drawError("You can't move object","during animation!");
+            else if(GetAsyncKeyState(0x57))
+                translateazaTaste(0,-1,0);
+            else if(GetAsyncKeyState(0x53))
+                translateazaTaste(0,1,0);
+            else if(GetAsyncKeyState(0x41))
+                translateazaTaste(-1,0,0);
+            else if(GetAsyncKeyState(0x44))
+                translateazaTaste(1,0,0);
+            else if(GetAsyncKeyState(0x51))
+                translateazaTaste(0,0,1);
+            else if(GetAsyncKeyState(0x45))
+                translateazaTaste(0,0,-1);
         }
 
         if(errorScreen)
@@ -609,6 +656,9 @@ void program()
 
         if(toggleAnimation)
         {
+            rotatieX=0;
+            rotatieY=0;
+            rotatieZ=0;
             setcolor(DARKGRAY);
             deseneaza();
         }
