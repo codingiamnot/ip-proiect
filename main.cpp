@@ -29,6 +29,7 @@ struct punct
 int n, m;
 
 vector<punct> puncte;
+vector< pair<int, int> > puncteEcran;
 vector<pair<int, int>> muchii;
 
 vector<bool> viz;
@@ -361,7 +362,7 @@ void deseneaza(float d = 10)
     }
 
     ///calc screen values
-    vector< pair<int, int> > puncteEcran;
+    puncteEcran.clear();
 
     ///TODO maybe change back
     float minX = -5, maxX = 5;
@@ -518,7 +519,7 @@ void drawPoint()
                 x = ((x - screenHeight/2 ) / procentDeOcupareEcran / (float)screenHeight + 0.5 ) * 10 - 5;
                 y = ((y - screenWidth/2 ) / procentDeOcupareEcran / (float)screenWidth + 0.5 ) * 10 - 5;
 
-                 x = x / 10 * G.z;
+                x = x / 10 * G.z;
                 y = y / 10 * G.z;
 
                 puncte.push_back(punct(x,y,G.z));
@@ -529,6 +530,16 @@ void drawPoint()
     }
 }
 
+int findpoint(float x, float y)  ///momentan
+{
+    int pct=-1 , eroare=5;
+
+    for(int i=0 ; i<puncteEcran.size() && pct==-1 ; i++)
+        if(puncteEcran[i].first-eroare <= x && x <= puncteEcran[i].first+eroare && puncteEcran[i].second-eroare<=y && y<=puncteEcran[i].second+eroare)
+            pct = i;
+    return pct;
+}
+
 void drawEdge()
 {
      if(toggleAnimation)
@@ -536,6 +547,29 @@ void drawEdge()
         drawError("You can't draw ","during animation!\n");
         return;
     }
+
+    int gasit1 = -1 , gasit2 = -1;
+
+    while(gasit1 == -1 || gasit2 == -1)
+    {
+        if(errorScreen)
+                closeError();
+
+        if(ismouseclick(WM_LBUTTONDOWN))
+        {
+            clearmouseclick(WM_LBUTTONDOWN);
+            float x=mousex(), y=mousey();
+            int pct=findpoint(x,y);
+
+            if(pct == -1)
+                drawError("There is no","point there!");
+            else if(gasit1 == -1)
+                gasit1 = pct;
+            else gasit2 = pct;
+        }
+    }
+
+    muchii.push_back({gasit1, gasit2});
 
     ///
 }
@@ -620,9 +654,9 @@ void program()
 
         if(kbhit() && (GetAsyncKeyState(0x57) || GetAsyncKeyState(0x53) || GetAsyncKeyState(0x41) || GetAsyncKeyState(0x44) || GetAsyncKeyState(0x51) || GetAsyncKeyState(0x45)))
         {
-             if(toggleAnimation && !errorScreen)
-                drawError("You can't move object","during animation!");
-            else if(GetAsyncKeyState(0x57))
+             //if(toggleAnimation && !errorScreen)
+                //drawError("You can't move object","during animation!"); else
+            if(GetAsyncKeyState(0x57))
                 translateazaTaste(0,-1,0);
             else if(GetAsyncKeyState(0x53))
                 translateazaTaste(0,1,0);
