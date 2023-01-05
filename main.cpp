@@ -126,37 +126,8 @@ void translateaza(float dx, float dy, float dz)
     }
 }
 
-
-void rotestex(float alfa)
-{
-    for(int i=0 ; i<n ; i++)
-    {
-        puncte[i].x=puncte[i].x;
-        puncte[i].y=puncte[i].y*cos(alfa)-puncte[i].z*sin(alfa);
-        puncte[i].z=puncte[i].y*sin(alfa)+puncte[i].z*cos(alfa);
-    }
-}
-
-void rotestey(float alfa)
-{
-    for(int i=0 ; i<n ; i++)
-    {
-        puncte[i].x=puncte[i].x*cos(alfa)+puncte[i].z*sin(alfa);
-        puncte[i].y=puncte[i].y;
-        puncte[i].z=-puncte[i].x*sin(alfa)+puncte[i].z*cos(alfa);
-    }
-}
-
 void roteste(float alfa, float beta, float omega)
 {
-    /*
-    punct G=centruGreutate();
-    translateaza(-G.x,-G.y,-G.z);
-    rotestex(alfa);
-    rotestey(beta);
-    translateaza(G.x,G.y,G.z);
-    */
-
     rotatieX += alfa;
     rotatieY += beta;
     rotatieZ += omega;
@@ -386,12 +357,8 @@ void deseneaza(float d = 10)
         int x = ( ((pct.x - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
         int y = ( ((pct.y - minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
 
-        //cout<<pct.x<<' '<<pct.y<<" becomes "<<x<<' '<<y<<endl;
-
         puncteEcran.push_back( {x, y} );
     }
-
-    //initwindow(screenWidth, screenHeight);
 
     for(int i=0;i<(int)muchii.size();i++)
     {
@@ -408,9 +375,6 @@ void deseneaza(float d = 10)
     {
         putpixel((int)pct.first, (int)pct.second, getcolor());
     }
-
-    //getch();
-    //closegraph();
 }
 
 
@@ -448,8 +412,6 @@ struct button
             setbkcolor(WHITE);
             setcolor(BLACK);
             outtextxy((x1 + x2) / 2, (y1 + y2) / 2 + 5, (char *)txt.c_str());
-            //setcolor(BLACK);
-            //setbkcolor(BLACK);
         }
     }
 
@@ -474,11 +436,6 @@ void drawError(const string &text1, const string &text2)
     outtextxy(150, 125, (char *)text2.c_str());
 
     setcurrentwindow(mainScreeen);
-    //getch();
-    ///closegraph(errorScreen);
-    //outtextxy(screenWidth + 100, screenHeight - 90 + 5, (char *)text1.c_str());
-    //outtextxy(screenWidth + 100, screenHeight - 70 + 5, (char *)text2.c_str());
-
 }
 
 void closeError()
@@ -523,7 +480,6 @@ void drawPoint()
                 y = y / 10 * G.z;
 
                 puncte.push_back(punct(x,y,G.z));
-
             }
         }
 
@@ -570,8 +526,6 @@ void drawEdge()
     }
 
     muchii.push_back({gasit1, gasit2});
-
-    ///
 }
 
 void rotesteTaste(float x, float y, float z)
@@ -627,7 +581,6 @@ void program()
     {
         if(toggleAnimation)
         {
-            //roteste(0.1, 0.1);
             rotatieX=0.1;
             rotatieY=0.1;
             setcolor(WHITE);
@@ -654,8 +607,6 @@ void program()
 
         if(kbhit() && (GetAsyncKeyState(0x57) || GetAsyncKeyState(0x53) || GetAsyncKeyState(0x41) || GetAsyncKeyState(0x44) || GetAsyncKeyState(0x51) || GetAsyncKeyState(0x45)))
         {
-             //if(toggleAnimation && !errorScreen)
-                //drawError("You can't move object","during animation!"); else
             if(GetAsyncKeyState(0x57))
                 translateazaTaste(0,-1,0);
             else if(GetAsyncKeyState(0x53))
@@ -702,12 +653,8 @@ void program()
     closegraph();
 }
 
-
 int main()
 {
-    //test();
-    //mainLoop();
-    //meniu();
     ifstream fin("in.txt");
     int x,y,z;
     fin>>n>>m;
@@ -722,7 +669,6 @@ int main()
         fin>>x>>y;
         muchii.push_back({x, y});
     }
-
     program();
     return 0;
 }
