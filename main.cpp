@@ -28,9 +28,9 @@ struct punct
 
 int n, m;
 
-vector<punct> puncte;
-vector< pair<int, int> > puncteEcran;
-vector<pair<int, int>> muchii;
+vector<punct> puncte , puncteAnterioare;
+vector< pair<int, int>> puncteEcran;
+vector<pair<int, int>> muchii , muchiiAnterioare;
 
 vector<bool> viz;
 
@@ -38,7 +38,7 @@ float procentDeOcupareEcran = 0.75;
 
 float rotatieX = 0, rotatieY =0 , rotatieZ = 0;
 
-bool animOn = true, toggleAnimation = true;
+bool toggleAnimation = false;
 
 int errorScreen=0, mainScreeen;
 
@@ -131,13 +131,6 @@ void roteste(float alfa, float beta, float omega)
     rotatieX += alfa;
     rotatieY += beta;
     rotatieZ += omega;
-}
-
-void zoom(float dx)
-{
-    procentDeOcupareEcran += dx;
-    procentDeOcupareEcran = max((float)0, procentDeOcupareEcran);
-    procentDeOcupareEcran = min((float)1, procentDeOcupareEcran);
 }
 
 bool compZ(pair<punct, int> a, pair<punct, int> b)
@@ -264,7 +257,6 @@ void deseneaza(float d = 10)
     vector<punct> puncteRotite;
     punct g = centruGreutate();
 
-
     for(auto pct : puncte)
     {
         float x = pct.x , y = pct.y, z = pct.z;
@@ -376,8 +368,6 @@ void deseneaza(float d = 10)
         putpixel((int)pct.first, (int)pct.second, getcolor());
     }
 }
-
-
 
 struct button
 {
@@ -573,6 +563,67 @@ void translateazaTaste(float x, float y, float z)
     deseneaza();
 }
 
+void copieAnterior()
+{
+    for(auto pct : puncte)
+        puncteAnterioare.push_back(pct);
+    for(auto muchie : muchii)
+        muchiiAnterioare.push_back(muchie);
+    puncte.clear();
+    muchii.clear();
+}
+
+void drawC()
+{
+    copieAnterior();
+    ifstream fin("cube.txt");
+    int x,y,z;
+    fin>>n>>m;
+    for(int i=1 ; i<=n ; i++)
+    {
+        fin>>x>>y>>z;
+        puncte.push_back(punct(x, y, z));
+    }
+
+    for(int i=1 ; i<=m ; i++)
+    {
+        fin>>x>>y;
+        muchii.push_back({x, y});
+    }
+    fin.close();
+    rotatieX = 0;
+    rotatieY = 0;
+    rotatieZ = 0;
+    setcolor(WHITE);
+    deseneaza();
+}
+
+void mergeObjects()
+{
+    int x,y,aux;
+
+    aux=puncte.size();
+
+    for(auto pct : puncteAnterioare)
+        puncte.push_back(pct);
+
+    for(auto muchie : muchiiAnterioare)
+        muchii.push_back({muchie.first + aux,muchie.second + aux});
+    puncteAnterioare.clear();
+    muchiiAnterioare.clear();
+}
+
+void clearDrawing()
+{
+    puncte.clear();
+    muchii.clear();
+    puncteAnterioare.clear();
+    muchiiAnterioare.clear();
+    setcolor(DARKGRAY);
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    bar(0,0,screenWidth,screenHeight);
+}
+
 void program()
 {
     mainScreeen = initwindow(screenWidth + 200, screenHeight, "3D Visualizer", 200, 25);
@@ -593,6 +644,21 @@ void program()
 
     button b3=button(screenWidth+30,250,screenWidth+170,300,"Toggle animation");
     b3.draw();
+
+    button b4=button(screenWidth+30,350,screenWidth+60,380,"C");
+    b4.draw();
+
+    button b5=button(screenWidth+85,350,screenWidth+115,380,"PP");
+    b5.draw();
+
+    button b6=button(screenWidth+140,350,screenWidth+170,380,"P");
+    b6.draw();
+
+    button b7=button(screenWidth+30,430,screenWidth+170,480,"Merge Objects");
+    b7.draw();
+
+    button b8=button(screenWidth+30,530,screenWidth+170,580,"Clear Drawing");
+    b8.draw();
 
     while(true)
     {
@@ -652,6 +718,12 @@ void program()
                 drawEdge();
             else if(b3.isPressed())
                 toggleAnimation=1-toggleAnimation;
+            else if(b4.isPressed())
+                drawC();
+            else if(b7.isPressed())
+                mergeObjects();
+            else if(b8.isPressed())
+                clearDrawing();
         }
 
         this_thread::sleep_for( chrono::milliseconds( 100 / 2 ) );
@@ -672,20 +744,7 @@ void program()
 
 int main()
 {
-    ifstream fin("in.txt");
-    int x,y,z;
-    fin>>n>>m;
-    for(int i=1 ; i<=n ; i++)
-    {
-        fin>>x>>y>>z;
-        puncte.push_back(punct(x, y, z));
-    }
 
-    for(int i=1 ; i<=m ; i++)
-    {
-        fin>>x>>y;
-        muchii.push_back({x, y});
-    }
     program();
     return 0;
 }
