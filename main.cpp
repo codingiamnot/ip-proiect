@@ -479,7 +479,16 @@ void drawPoint()
                 x = x / 10 * G.z;
                 y = y / 10 * G.z;
 
+                rotatieX=0;
+                rotatieY=0;
+                rotatieZ=0;
+                setcolor(DARKGRAY);
+                deseneaza();
                 puncte.push_back(punct(x,y,G.z));
+
+                setcolor(WHITE);
+                deseneaza();
+
             }
         }
 
@@ -525,7 +534,15 @@ void drawEdge()
         }
     }
 
+    rotatieX=0;
+    rotatieY=0;
+    rotatieZ=0;
+    setcolor(DARKGRAY);
+    deseneaza();
     muchii.push_back({gasit1, gasit2});
+
+    setcolor(WHITE);
+    deseneaza();
 }
 
 void rotesteTaste(float x, float y, float z)
