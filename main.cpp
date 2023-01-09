@@ -41,58 +41,19 @@ bool toggleAnimation = false, toggleRendering = false;
 
 int errorScreen=0, mainScreeen;
 
-void citire(string &address)
+void salvare()
 {
-    FILE *input = fopen(address.c_str(), "rb");
+    ofstream fout ("save.txt");
 
-    fread(&n, 4, 1, input);
-    fread(&m, 4, 1, input);
+    fout<<(int)puncte.size()<<' '<<(int)muchii.size()<<'\n';
 
-    for(int i=0; i<n; i++)
-    {
-        int x, y, z;
+    for(auto pct : puncte)
+        fout<<pct.x<<' '<<pct.y<<' '<<pct.z<<'\n';
 
-        fread(&x, 4, 1, input);
-        fread(&y, 4, 1, input);
-        fread(&z, 4, 1, input);
+    for(auto it : muchii)
+        fout<<it.first<<' '<<it.second<<'\n';
 
-        puncte.push_back(punct(x, y, z));
-    }
-
-    for(int i=0; i<m; i++)
-    {
-        int x, y;
-
-        fread(&x, 4, 1, input);
-        fread(&y, 4, 1, input);
-
-        muchii.push_back({x, y});
-    }
-
-    fclose(input);
-}
-
-void salvare(string &address)
-{
-    FILE *output = fopen(address.c_str(), "wb");
-
-    fwrite(&n, 4, 1, output);
-    fwrite(&m, 4, 1, output);
-
-    for(int i=0; i<n; i++)
-    {
-        fwrite(&puncte[i].x, 4, 1, output);
-        fwrite(&puncte[i].y, 4, 1, output);
-        fwrite(&puncte[i].z, 4, 1, output);
-    }
-
-    for(int i=0; i<m; i++)
-    {
-        fwrite(&muchii[i].first, 4, 1, output);
-        fwrite(&muchii[i].second, 4, 1, output);
-    }
-
-    fclose(output);
+    fout.close();
 }
 
 punct centruGreutate()
@@ -420,8 +381,8 @@ void deseneaza(float d = 10)
 
     for(auto pct : punctePlan)
     {
-        int x = ( ((pct.x * pct.marime - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
-        int y = ( ((pct.y * pct.marime- minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
+        int x = ((pct.x * pct.marime - minX) / (maxX - minX)) * (float)screenHeight * 0.75 + 75;
+        int y = ((pct.y * pct.marime - minY) / (maxY - minY)) * (float)screenWidth * 0.75 + 75;
 
         puncteEcran.push_back( {x, y} );
     }
@@ -451,16 +412,20 @@ void deseneaza(float d = 10)
 
 struct button
 {
-    int x1,y1,x2,y2;
+    int x1,y1,x2,y2,colorText;
     string txt;
 
-    button(int xA, int yA, int xB, int yB, const string &text)
+    button()
+    {   }
+
+    button(int xA, int yA, int xB, int yB, const string &text, int colorTextA)
     {
         txt = text;
         x1 = xA;
         x2 = xB;
         y1 = yA;
         y2 = yB;
+        colorText = colorTextA;
     }
 
     void draw()
@@ -480,7 +445,7 @@ struct button
             settextstyle(3, HORIZ_DIR, 1);
             settextjustify(CENTER_TEXT, CENTER_TEXT);
             setbkcolor(WHITE);
-            setcolor(BLACK);
+            setcolor(colorText);
             outtextxy((x1 + x2) / 2, (y1 + y2) / 2 + 5, (char *)txt.c_str());
         }
     }
@@ -492,7 +457,7 @@ struct button
             return true;
         return false;
     }
-};
+}b1 , b2 , b3 , b4 , b5 , b6 , b7 , b8 , b9 , b10 , b11;
 
 
 void drawError(const string &text1, const string &text2)
@@ -590,61 +555,6 @@ void addEdge(int a, int b)
 
     muchii.push_back({a , (int)puncte.size()-1});
     muchii.push_back({(int)puncte.size()-1 , b});
-    /*
-    int cont=a;
-    float eps;
-    if(puncte[a].x!=puncte[b].x)
-    {
-        eps=(puncte[b].x - puncte[a].x) / 10;
-
-        float dy,dz;
-        dy=(puncte[a].y-puncte[b].y) / (puncte[a].x-puncte[b].x);
-        dz=(puncte[a].z-puncte[b].z) / (puncte[a].x-puncte[b].x);
-
-        for(float i=puncte[a].x+eps ; i<puncte[b].x ; i+=eps)
-        {
-            float y, z;
-            y=puncte[a].y + (i - puncte[a].x ) * dy;
-            z=puncte[a].z + (i - puncte[a].x ) * dz;
-            puncte.push_back(punct(i,y,z));
-            puncte.back().marime=puncte[a].marime;
-            muchii.push_back({cont, (int)puncte.size()-1});
-            cont=(int)puncte.size()-1;
-        }
-        muchii.push_back({cont, b});
-    }
-    else if(puncte[a].y!=puncte[b].y)
-    {
-        eps=(puncte[b].y - puncte[a].y) / 10;
-
-        float dz;
-        dz=(puncte[a].z-puncte[b].z) / (puncte[a].y-puncte[b].y);
-
-        for(float i=puncte[a].y+eps ; i<puncte[b].y ; i+=eps)
-        {
-            float z;
-            z=puncte[a].z + (i - puncte[a].y ) * dz;
-            puncte.push_back(punct(puncte[a].x , i , z));
-            puncte.back().marime=puncte[a].marime;
-            muchii.push_back({cont, (int)puncte.size()-1});
-            cont=(int)puncte.size()-1;
-        }
-        muchii.push_back({cont, b});
-    }
-    else
-    {
-        eps=(puncte[b].z - puncte[a].z) / 10;
-
-        for(float i=puncte[a].z+eps ; i<puncte[b].z ; i+=eps)
-        {
-            puncte.push_back(punct(puncte[a].x , puncte[a].y , i));
-            puncte.back().marime=puncte[a].marime;
-            muchii.push_back({cont, (int)puncte.size()-1});
-            cont=(int)puncte.size()-1;
-        }
-        muchii.push_back({cont, b});
-    }*/
-    //muchii.push_back({a,b});
 }
 
 void drawEdge()
@@ -734,11 +644,11 @@ void copieAnterior()
     muchii.clear();
 }
 
-void draw(string file)
+void draw(string file,bool puneMij=true)
 {
     copieAnterior();
     ifstream fin(file);
-    int x,y,z;
+    float x,y,z;
     fin>>n>>m;
     for(int i=1 ; i<=n ; i++)
     {
@@ -750,7 +660,10 @@ void draw(string file)
     for(int i=1 ; i<=m ; i++)
     {
         fin>>x>>y;
-        addEdge(x,y);
+        if(puneMij)
+            addEdge(x,y);
+        else
+            muchii.push_back({x,y});
     }
     fin.close();
     bool aux=toggleRendering;
@@ -759,7 +672,9 @@ void draw(string file)
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
+
     cout<<puncte.size()<<'\n';  ///important
+
     toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
@@ -793,8 +708,53 @@ void mergeObjects()
     deseneaza();
 }
 
+void meniu()
+{
+    setcolor(DARKGRAY);
+    line(screenWidth,0,screenWidth,screenHeight);
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    floodfill(screenWidth-1,1,DARKGRAY);
+
+    setfillstyle(SOLID_FILL, LIGHTGRAY);
+    bar(screenWidth,0,screenWidth+200,screenHeight);
+
+    b1=button(screenWidth+9,25,screenWidth+96,75,"Draw point",BLACK);
+    b1.draw();
+
+    b2=button(screenWidth+104,25,screenWidth+191,75,"Draw edge",BLACK);
+    b2.draw();
+
+    b4=button(screenWidth+30,100,screenWidth+60,130,"C",BLACK);
+    b4.draw();
+
+    b5=button(screenWidth+85,100,screenWidth+115,130,"PP",BLACK);
+    b5.draw();
+
+    b6=button(screenWidth+140,100,screenWidth+170,130,"P",BLACK);
+    b6.draw();
+
+    b11=button(screenWidth+30,155,screenWidth+170,205,"Last Saved",BLACK);
+    b11.draw();
+
+    b7=button(screenWidth+30,230,screenWidth+170,280,"Merge Objects",BLACK);
+    b7.draw();
+
+    b9=button(screenWidth+30,305,screenWidth+170,355,"Toggle Rendering",BLACK);
+    b9.draw();
+
+    b3=button(screenWidth+30,375,screenWidth+170,425,"Toggle Animation",BLACK);
+    b3.draw();
+
+    b10=button(screenWidth+30,450,screenWidth+170,500,"Save",GREEN);
+    b10.draw();
+
+    b8=button(screenWidth+30,525,screenWidth+170,575,"Clear Drawing",RED);
+    b8.draw();
+}
+
 void clearDrawing()
 {
+    meniu();
     puncte.clear();
     muchii.clear();
     puncteAnterioare.clear();
@@ -804,6 +764,8 @@ void clearDrawing()
     setcolor(DARKGRAY);
     setfillstyle(SOLID_FILL, DARKGRAY);
     bar(0,0,screenWidth,screenHeight);
+
+    rotatieX = rotatieY = rotatieZ = 0;
 }
 
 void dimensiune(float x)
@@ -820,59 +782,16 @@ void dimensiune(float x)
     for(auto &pct : puncte)
         pct.marime=pct.marime*x;
 
-    /*punct g=centruGreutate();
-    translateaza(-g.x , -g.y , -g.z);
-    for(auto pct : puncte)
-    {
-       pct.x+=x*(1-2*(pct.x>0));
-       pct.y+=x*(1-2*(pct.y>0));
-       pct.z+=x*(1-2*(pct.z>0));
-    }
-    translateaza(g.x , g.y , g.z);*/
     toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
 
-
 void program()
 {
-    mainScreeen = initwindow(screenWidth + 200, screenHeight, "3D Visualizer", 200, 25);
+    mainScreeen = initwindow(screenWidth + 200, screenHeight, "3D Visualizer", 200, 0);
 
-    setcolor(DARKGRAY);
-    line(screenWidth,0,screenWidth,screenHeight);
-    setfillstyle(SOLID_FILL, DARKGRAY);
-    floodfill(screenWidth-1,1,DARKGRAY);
-
-    setfillstyle(SOLID_FILL, LIGHTGRAY);
-    floodfill(screenWidth+1,1,DARKGRAY);
-
-    button b1=button(screenWidth+9,50,screenWidth+96,100,"Draw point");
-    b1.draw();
-
-    button b2=button(screenWidth+104,50,screenWidth+191,100,"Draw edge");
-    b2.draw();
-
-    button b3=button(screenWidth+30,150,screenWidth+170,200,"Toggle animation");
-    b3.draw();
-
-    button b4=button(screenWidth+30,250,screenWidth+60,280,"C");
-    b4.draw();
-
-    button b5=button(screenWidth+85,250,screenWidth+115,280,"PP");
-    b5.draw();
-
-    button b6=button(screenWidth+140,250,screenWidth+170,280,"P");
-    b6.draw();
-
-    button b7=button(screenWidth+30,330,screenWidth+170,380,"Merge Objects");
-    b7.draw();
-
-    button b8=button(screenWidth+30,430,screenWidth+170,480,"Clear Drawing");
-    b8.draw();
-
-    button b9=button(screenWidth+30,530,screenWidth+170,580,"Toggle Rendering");
-    b9.draw();
+    meniu();
 
     while(true)
     {
@@ -963,6 +882,11 @@ void program()
                 setcolor(WHITE);
                 deseneaza();
             }
+            else if(b10.isPressed())
+                salvare();
+            else if(b11.isPressed())
+                draw("save.txt",false);
+
         }
 
         this_thread::sleep_for( chrono::milliseconds( 100 / 2 ) );
