@@ -430,6 +430,10 @@ void deseneaza(float d = 10)
 
     calcViz(punctePlan);
 
+    int aux;
+    for(auto pct : punctePlan)
+        aux=pct.x;
+
     for(int i=0;i<(int)muchii.size();i++)
     {
         int id1 = muchii[i].first;
