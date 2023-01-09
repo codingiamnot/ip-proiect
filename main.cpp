@@ -14,9 +14,10 @@ long double er = 1e-7;
 
 struct punct
 {
+    float marime;
     float x, y, z;
 
-    punct() {}
+    //punct() {}
 
     punct(float x, float y, float z)
     {
@@ -302,6 +303,7 @@ void deseneaza(float d = 10)
         z += g.z;
 
         puncteRotite.push_back(punct(x, y, z));
+        puncteRotite.back().marime=pct.marime;
         /*pct.x=x;
         pct.y=y;
         pct.z=z;*/
@@ -322,6 +324,7 @@ void deseneaza(float d = 10)
         float y = (pct.y / pct.z) * d;
 
         punctePlan.push_back( punct(x, y, pct.z) );
+        punctePlan.back().marime=pct.marime;
     }
 
     ///calc screen values
@@ -346,8 +349,8 @@ void deseneaza(float d = 10)
 
     for(auto pct : punctePlan)
     {
-        int x = ( ((pct.x - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
-        int y = ( ((pct.y - minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
+        int x = ( ((pct.x * pct.marime - minX) / (maxX - minX)) - 0.5 ) * (float)screenHeight * procentDeOcupareEcran + screenHeight/2;
+        int y = ( ((pct.y * pct.marime- minY) / (maxY - minY)) - 0.5 ) * (float)screenWidth * procentDeOcupareEcran + screenWidth / 2;
 
         puncteEcran.push_back( {x, y} );
     }
@@ -475,6 +478,7 @@ void drawPoint()
                 setcolor(DARKGRAY);
                 deseneaza();
                 puncte.push_back(punct(x,y,G.z));
+                puncte.back().marime = 1;
 
                 setcolor(WHITE);
                 deseneaza();
@@ -583,6 +587,7 @@ void drawC()
     {
         fin>>x>>y>>z;
         puncte.push_back(punct(x, y, z));
+        puncte.back().marime=1;
     }
 
     for(int i=1 ; i<=m ; i++)
@@ -594,6 +599,7 @@ void drawC()
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
+    cout<<puncte.size()<<'\n';  ///important
     setcolor(WHITE);
     deseneaza();
 }
@@ -623,6 +629,31 @@ void clearDrawing()
     setfillstyle(SOLID_FILL, DARKGRAY);
     bar(0,0,screenWidth,screenHeight);
 }
+
+void dimensiune(float x)
+{
+    rotatieX=0;
+    rotatieY=0;
+    rotatieZ=0;
+    setcolor(DARKGRAY);
+    deseneaza();
+
+    for(auto &pct : puncte)
+    pct.marime=pct.marime*x;
+
+    /*punct g=centruGreutate();
+    translateaza(-g.x , -g.y , -g.z);
+    for(auto pct : puncte)
+    {
+       pct.x+=x*(1-2*(pct.x>0));
+       pct.y+=x*(1-2*(pct.y>0));
+       pct.z+=x*(1-2*(pct.z>0));
+    }
+    translateaza(g.x , g.y , g.z);*/
+    setcolor(WHITE);
+    deseneaza();
+}
+
 
 void program()
 {
@@ -702,6 +733,13 @@ void program()
                 translateazaTaste(0,0,1);
             else if(GetAsyncKeyState(0x45))
                 translateazaTaste(0,0,-1);
+        }
+
+        if(kbhit() && (GetAsyncKeyState(0xA4) || GetAsyncKeyState(0xA5)) )
+        {
+            if(GetAsyncKeyState(0xA4))
+                dimensiune(0.9);
+            else dimensiune(1.1);
         }
 
         if(errorScreen)
