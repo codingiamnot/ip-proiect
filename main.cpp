@@ -25,9 +25,9 @@ struct punct
 
 int n, m;
 
-vector<punct> puncte , puncteAnterioare;
+vector<punct> puncte, puncteAnterioare;
 vector< pair<int, int>> puncteEcran;
-vector<pair<int, int>> muchii , muchiiAnterioare;
+vector<pair<int, int>> muchii, muchiiAnterioare;
 
 vector <long double> dy;
 
@@ -35,9 +35,9 @@ vector<bool> viz;
 
 float procentDeOcupareEcran = 0.75;
 
-float rotatieX = 0, rotatieY =0 , rotatieZ = 0;
+float rotatieX = 0, rotatieY =0, rotatieZ = 0;
 
-bool toggleAnimation = false , toggleRendering = false;
+bool toggleAnimation = false, toggleRendering = false;
 
 int errorScreen=0, mainScreeen;
 
@@ -147,6 +147,7 @@ float fArie(punct a, punct b, punct c)
 
 bool isInside(punct a, vector<punct> v)
 {
+    float er=1e-8;
     if((int)v.size() <= 2)
         return false;
 
@@ -333,7 +334,7 @@ void deseneaza(float d = 10)
 
     for(auto pct : puncte)
     {
-        float x = pct.x , y = pct.y, z = pct.z;
+        float x = pct.x, y = pct.y, z = pct.z;
 
         ///translatam
         x -= g.x;
@@ -434,7 +435,7 @@ void deseneaza(float d = 10)
     for(auto pct : punctePlan)
         aux=pct.x;
 
-    for(int i=0;i<(int)muchii.size();i++)
+    for(int i=0; i<(int)muchii.size(); i++)
     {
         int id1 = muchii[i].first;
         int id2 = muchii[i].second;
@@ -514,7 +515,7 @@ void closeError()
 {
     setcurrentwindow(errorScreen);
     if(ismouseclick(WM_LBUTTONDOWN))
-        clearmouseclick(WM_LBUTTONDOWN) , closegraph(errorScreen) , errorScreen=0;
+        clearmouseclick(WM_LBUTTONDOWN), closegraph(errorScreen), errorScreen=0;
     setcurrentwindow(mainScreeen);
 }
 
@@ -551,6 +552,8 @@ void drawPoint()
                 x = x / 10 * G.z;
                 y = y / 10 * G.z;
 
+                bool aux=toggleRendering;
+                toggleRendering=0;
                 rotatieX=0;
                 rotatieY=0;
                 rotatieZ=0;
@@ -559,6 +562,7 @@ void drawPoint()
                 puncte.push_back(punct(x,y,G.z));
                 puncte.back().marime = 1;
 
+                toggleRendering=aux;
                 setcolor(WHITE);
                 deseneaza();
 
@@ -570,7 +574,7 @@ void drawPoint()
 
 int findpoint(float x, float y)  ///momentan
 {
-    int pct=-1 , eroare=5;
+    int pct=-1, eroare=5;
 
     for(int i=0 ; i<puncteEcran.size() && pct==-1 ; i++)
         if(puncteEcran[i].first-eroare <= x && x <= puncteEcran[i].first+eroare && puncteEcran[i].second-eroare<=y && y<=puncteEcran[i].second+eroare)
@@ -578,20 +582,79 @@ int findpoint(float x, float y)  ///momentan
     return pct;
 }
 
+void addEdge(int a, int b)
+{
+    int cont=a;
+
+    float eps;
+    if(puncte[a].x!=puncte[b].x)
+    {
+        eps=(puncte[b].x - puncte[a].x) / 10;
+
+        float dy,dz;
+        dy=(puncte[a].y-puncte[b].y) / (puncte[a].x-puncte[b].x);
+        dz=(puncte[a].z-puncte[b].z) / (puncte[a].x-puncte[b].x);
+
+        for(float i=puncte[a].x+eps ; i<puncte[b].x ; i+=eps)
+        {
+            float y, z;
+            y=puncte[a].y + (i - puncte[a].x ) * dy;
+            z=puncte[a].z + (i - puncte[a].x ) * dz;
+            puncte.push_back(punct(i,y,z));
+            puncte.back().marime=puncte[a].marime;
+            muchii.push_back({cont, (int)puncte.size()-1});
+            cont=(int)puncte.size()-1;
+        }
+        muchii.push_back({cont, b});
+    }
+    else if(puncte[a].y!=puncte[b].y)
+    {
+        eps=(puncte[b].y - puncte[a].y) / 10;
+
+        float dz;
+        dz=(puncte[a].z-puncte[b].z) / (puncte[a].y-puncte[b].y);
+
+        for(float i=puncte[a].y+eps ; i<puncte[b].y ; i+=eps)
+        {
+            float z;
+            z=puncte[a].z + (i - puncte[a].y ) * dz;
+            puncte.push_back(punct(puncte[a].x , i , z));
+            puncte.back().marime=puncte[a].marime;
+            muchii.push_back({cont, (int)puncte.size()-1});
+            cont=(int)puncte.size()-1;
+        }
+        muchii.push_back({cont, b});
+    }
+    else
+    {
+        eps=(puncte[b].z - puncte[a].z) / 10;
+
+        for(float i=puncte[a].z+eps ; i<puncte[b].z ; i+=eps)
+        {
+            puncte.push_back(punct(puncte[a].x , puncte[a].y , i));
+            puncte.back().marime=puncte[a].marime;
+            muchii.push_back({cont, (int)puncte.size()-1});
+            cont=(int)puncte.size()-1;
+        }
+        muchii.push_back({cont, b});
+    }
+    //muchii.push_back({a,b});
+}
+
 void drawEdge()
 {
-     if(toggleAnimation)
+    if(toggleAnimation)
     {
         drawError("You can't draw ","during animation!\n");
         return;
     }
 
-    int gasit1 = -1 , gasit2 = -1;
+    int gasit1 = -1, gasit2 = -1;
 
     while(gasit1 == -1 || gasit2 == -1)
     {
         if(errorScreen)
-                closeError();
+            closeError();
 
         if(ismouseclick(WM_LBUTTONDOWN))
         {
@@ -607,19 +670,24 @@ void drawEdge()
         }
     }
 
+    bool aux=toggleRendering;
+    toggleRendering=0;
     rotatieX=0;
     rotatieY=0;
     rotatieZ=0;
     setcolor(DARKGRAY);
     deseneaza();
-    muchii.push_back({gasit1, gasit2});
+    addEdge(gasit1,gasit2);
 
+    toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
 
 void rotesteTaste(float x, float y, float z)
 {
+    bool aux=toggleRendering;
+    toggleRendering=0;
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
@@ -629,18 +697,22 @@ void rotesteTaste(float x, float y, float z)
     rotatieX = x;
     rotatieY = y;
     rotatieZ = z;
+    toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
 
 void translateazaTaste(float x, float y, float z)
 {
+    bool aux=toggleRendering;
+    toggleRendering=0;
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
     setcolor(DARKGRAY);
     deseneaza();
 
+    toggleRendering=aux;
     translateaza(x,y,z);
     setcolor(WHITE);
     deseneaza();
@@ -672,36 +744,45 @@ void drawC()
     for(int i=1 ; i<=m ; i++)
     {
         fin>>x>>y;
-        muchii.push_back({x, y});
+        addEdge(x,y);
     }
     fin.close();
+    bool aux=toggleRendering;
+    toggleRendering=0;
+
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
     cout<<puncte.size()<<'\n';  ///important
+    toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
 
 void mergeObjects()
 {
-    int x,y,aux;
+    int x,y,auxx;
 
-    aux=puncte.size();
+    auxx=puncte.size();
 
     for(auto pct : puncteAnterioare)
         puncte.push_back(pct);
 
     for(auto muchie : muchiiAnterioare)
-        muchii.push_back({muchie.first + aux,muchie.second + aux});
+        muchii.push_back({muchie.first + auxx,muchie.second + auxx});
     puncteAnterioare.clear();
     muchiiAnterioare.clear();
+
+    bool aux=toggleRendering;
+    toggleRendering=0;
 
     rotatieX = 0;
     rotatieY = 0;
     rotatieZ = 0;
     setcolor(DARKGRAY);
     deseneaza();
+
+    toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
@@ -712,6 +793,8 @@ void clearDrawing()
     muchii.clear();
     puncteAnterioare.clear();
     muchiiAnterioare.clear();
+    toggleAnimation=0;
+    toggleRendering=0;
     setcolor(DARKGRAY);
     setfillstyle(SOLID_FILL, DARKGRAY);
     bar(0,0,screenWidth,screenHeight);
@@ -719,6 +802,9 @@ void clearDrawing()
 
 void dimensiune(float x)
 {
+    bool aux=toggleRendering;
+    toggleRendering=0;
+
     rotatieX=0;
     rotatieY=0;
     rotatieZ=0;
@@ -726,7 +812,7 @@ void dimensiune(float x)
     deseneaza();
 
     for(auto &pct : puncte)
-    pct.marime=pct.marime*x;
+        pct.marime=pct.marime*x;
 
     /*punct g=centruGreutate();
     translateaza(-g.x , -g.y , -g.z);
@@ -737,6 +823,7 @@ void dimensiune(float x)
        pct.z+=x*(1-2*(pct.z>0));
     }
     translateaza(g.x , g.y , g.z);*/
+    toggleRendering=aux;
     setcolor(WHITE);
     deseneaza();
 }
@@ -796,17 +883,17 @@ void program()
             if(toggleAnimation && !errorScreen)
                 drawError("You can't rotate object","during animation!");
             else if(GetAsyncKeyState(VK_LEFT))
-                rotesteTaste(0 , 0.1 , 0);
+                rotesteTaste(0, 0.1, 0);
             else if(GetAsyncKeyState(VK_RIGHT))
-                rotesteTaste(0 , -0.1 , 0);
+                rotesteTaste(0, -0.1, 0);
             else if(GetAsyncKeyState(VK_UP))
-                rotesteTaste(-0.1 , 0 , 0);
+                rotesteTaste(-0.1, 0, 0);
             else if(GetAsyncKeyState(VK_DOWN))
-                rotesteTaste(0.1 , 0 , 0);
+                rotesteTaste(0.1, 0, 0);
             else if(GetAsyncKeyState(VK_LSHIFT))
-                rotesteTaste(0 , 0 , -0.1);
+                rotesteTaste(0, 0, -0.1);
             else if(GetAsyncKeyState(VK_RSHIFT))
-                rotesteTaste(0 , 0 , 0.1);
+                rotesteTaste(0, 0, 0.1);
         }
 
         if(kbhit() && (GetAsyncKeyState(0x57) || GetAsyncKeyState(0x53) || GetAsyncKeyState(0x41) || GetAsyncKeyState(0x44) || GetAsyncKeyState(0x51) || GetAsyncKeyState(0x45)))
