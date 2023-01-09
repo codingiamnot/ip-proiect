@@ -147,7 +147,7 @@ float fArie(punct a, punct b, punct c)
 
 bool isInside(punct a, vector<punct> v)
 {
-    float er=1e-8;
+    float er=1e-5;
     if((int)v.size() <= 2)
         return false;
 
@@ -160,10 +160,7 @@ bool isInside(punct a, vector<punct> v)
     {
         float arie = fArie(a, v[i], v[i+1]);
 
-        if(abs(arie) <= er)
-            continue;
-
-        if(arie < 0)
+        if(arie <= er)
             return false;
     }
 
@@ -584,8 +581,17 @@ int findpoint(float x, float y)  ///momentan
 
 void addEdge(int a, int b)
 {
-    int cont=a;
+    float mijx , mijy , mijz;
+    mijx=(puncte[a].x + puncte[b].x) / 2;
+    mijy=(puncte[a].y + puncte[b].y) / 2;
+    mijz=(puncte[a].z + puncte[b].z) / 2;
+    puncte.push_back(punct(mijx , mijy , mijz));
+    puncte.back().marime=puncte[a].marime;
 
+    muchii.push_back({a , (int)puncte.size()-1});
+    muchii.push_back({(int)puncte.size()-1 , b});
+    /*
+    int cont=a;
     float eps;
     if(puncte[a].x!=puncte[b].x)
     {
@@ -637,7 +643,7 @@ void addEdge(int a, int b)
             cont=(int)puncte.size()-1;
         }
         muchii.push_back({cont, b});
-    }
+    }*/
     //muchii.push_back({a,b});
 }
 
@@ -728,10 +734,10 @@ void copieAnterior()
     muchii.clear();
 }
 
-void drawC()
+void draw(string file)
 {
     copieAnterior();
-    ifstream fin("cube.txt");
+    ifstream fin(file);
     int x,y,z;
     fin>>n>>m;
     for(int i=1 ; i<=n ; i++)
@@ -934,7 +940,11 @@ void program()
             else if(b3.isPressed())
                 toggleAnimation=1-toggleAnimation;
             else if(b4.isPressed())
-                drawC();
+                draw("cube.txt");
+            else if(b5.isPressed())
+                draw("parallelepiped.txt");
+            else if(b6.isPressed())
+                draw("pyramid.txt");
             else if(b7.isPressed())
                 mergeObjects();
             else if(b8.isPressed())
