@@ -37,7 +37,7 @@ float procentDeOcupareEcran = 0.75;
 
 float rotatieX = 0, rotatieY =0 , rotatieZ = 0;
 
-bool toggleAnimation = false;
+bool toggleAnimation = false , toggleRendering = false;
 
 int errorScreen=0, mainScreeen;
 
@@ -439,7 +439,7 @@ void deseneaza(float d = 10)
         int id1 = muchii[i].first;
         int id2 = muchii[i].second;
 
-        if(!viz[id1] || !viz[id2])
+        if(toggleRendering && (!viz[id1] || !viz[id2]))
             continue;
 
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
@@ -696,6 +696,14 @@ void mergeObjects()
         muchii.push_back({muchie.first + aux,muchie.second + aux});
     puncteAnterioare.clear();
     muchiiAnterioare.clear();
+
+    rotatieX = 0;
+    rotatieY = 0;
+    rotatieZ = 0;
+    setcolor(DARKGRAY);
+    deseneaza();
+    setcolor(WHITE);
+    deseneaza();
 }
 
 void clearDrawing()
@@ -746,29 +754,32 @@ void program()
     setfillstyle(SOLID_FILL, LIGHTGRAY);
     floodfill(screenWidth+1,1,DARKGRAY);
 
-    button b1=button(screenWidth+50,50,screenWidth+150,100,"Draw point");
+    button b1=button(screenWidth+9,50,screenWidth+96,100,"Draw point");
     b1.draw();
 
-    button b2=button(screenWidth+50,150,screenWidth+150,200,"Draw edge");
+    button b2=button(screenWidth+104,50,screenWidth+191,100,"Draw edge");
     b2.draw();
 
-    button b3=button(screenWidth+30,250,screenWidth+170,300,"Toggle animation");
+    button b3=button(screenWidth+30,150,screenWidth+170,200,"Toggle animation");
     b3.draw();
 
-    button b4=button(screenWidth+30,350,screenWidth+60,380,"C");
+    button b4=button(screenWidth+30,250,screenWidth+60,280,"C");
     b4.draw();
 
-    button b5=button(screenWidth+85,350,screenWidth+115,380,"PP");
+    button b5=button(screenWidth+85,250,screenWidth+115,280,"PP");
     b5.draw();
 
-    button b6=button(screenWidth+140,350,screenWidth+170,380,"P");
+    button b6=button(screenWidth+140,250,screenWidth+170,280,"P");
     b6.draw();
 
-    button b7=button(screenWidth+30,430,screenWidth+170,480,"Merge Objects");
+    button b7=button(screenWidth+30,330,screenWidth+170,380,"Merge Objects");
     b7.draw();
 
-    button b8=button(screenWidth+30,530,screenWidth+170,580,"Clear Drawing");
+    button b8=button(screenWidth+30,430,screenWidth+170,480,"Clear Drawing");
     b8.draw();
+
+    button b9=button(screenWidth+30,530,screenWidth+170,580,"Toggle Rendering");
+    b9.draw();
 
     while(true)
     {
@@ -841,6 +852,20 @@ void program()
                 mergeObjects();
             else if(b8.isPressed())
                 clearDrawing();
+            else if(b9.isPressed())
+            {
+                bool aux=1-toggleRendering;
+                toggleRendering=0;
+
+                rotatieX=0;
+                rotatieY=0;
+                rotatieZ=0;
+                setcolor(DARKGRAY);
+                deseneaza();
+                toggleRendering=aux;
+                setcolor(WHITE);
+                deseneaza();
+            }
         }
 
         this_thread::sleep_for( chrono::milliseconds( 100 / 2 ) );
