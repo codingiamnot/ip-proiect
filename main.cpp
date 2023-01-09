@@ -5,10 +5,6 @@
 
 using namespace std;
 
-vector<long double> dy;
-
-
-
 const int screenWidth = 600, screenHeight = 600;
 long double er = 1e-7;
 
@@ -32,6 +28,8 @@ int n, m;
 vector<punct> puncte , puncteAnterioare;
 vector< pair<int, int>> puncteEcran;
 vector<pair<int, int>> muchii , muchiiAnterioare;
+
+vector <long double> dy;
 
 vector<bool> viz;
 
@@ -139,35 +137,36 @@ bool compZ(pair<punct, int> a, pair<punct, int> b)
     return a.first.z < b.first.z;
 }
 
-bool isInside(punct a, vector<punct> &v)
+float fArie(punct a, punct b, punct c)
 {
-    int ans = 0;
+    float ans = a.x * b.y + b.x * c.y + c.x * a.y;
+    ans -= a.x * c.y + a.y * b.x + c.x * b.y;
 
-    for(auto pct : v)
-        if(pct.x > a.x && abs(pct.y - a.y) <= er)
-            ans ++;
+    return ans;
+}
+
+bool isInside(punct a, vector<punct> v)
+{
+    if((int)v.size() <= 2)
+        return false;
+
+    //cout<<"func inside pt "<<a.x<<' '<<a.y<<' ';
+
+    v.push_back(v[0]);
 
 
     for(int i=0; i<(int)v.size()-1; i++)
     {
-        if( abs(v[i].x - v[i+1].x) <= er )
-        {
-            if( min(v[i].y, v[i+1].y) + er <= a.y && a.y + er <= max(v[i].y, v[i].y) )
-                ans++;
-        }
+        float arie = fArie(a, v[i], v[i+1]);
 
-        else
-        {
-            long double dy = (v[i].y - v[i+1].y) / (v[i].x - v[i+1].x);
-            long double x = (a.y - v[i].y) / dy + v[i].x;
+        if(abs(arie) <= er)
+            continue;
 
-            if( min(v[i].x, v[i+1].x) + er <= x && x + er <= min(v[i].x, v[i+1].x) )
-                ans++;
-        }
-
+        if(arie < 0)
+            return false;
     }
 
-    return (ans % 2);
+    return true;
 }
 
 bool compPanta(int i, int j)
@@ -177,12 +176,23 @@ bool compPanta(int i, int j)
 
 void reorder(vector<punct> &v)
 {
+    /*
+    cout<<"reorder got\n";
+
+    for(auto it : v)
+        cout<<it.x<<' '<<it.y<<'\n';
+
+    cout<<"\n\n";
+    */
+
     int minP = 0;
     for(int i=1; i<(int)v.size(); i++)
     {
         if(v[i].x < v[minP].x || (abs(v[i].x - v[minP].x) <= er && v[i].y < v[minP].y) )
             minP = i;
     }
+
+    //cout<<minP<<'\n';
 
     dy.clear();
     for(int i=0; i<(int)v.size(); i++)
@@ -202,22 +212,66 @@ void reorder(vector<punct> &v)
             dy.push_back( (v[i].y - v[minP].y) / (v[i].x - v[minP].x ) );
     }
 
+    /*
+    cout<<"pante\n";
+
+    for(int i=0;i<(int)v.size(); i++)
+        cout<<dy[i]<<' ';
+    cout<<'\n';
+    */
+
     vector<int> perm;
     for(int i=0; i<(int)v.size(); i++)
         perm.push_back(i);
     sort(perm.begin(), perm.end(), compPanta);
 
+    /*
+    cout<<"perm\n";
+
+    for(int it : perm)
+        cout<<it<<' ';
+    cout<<'\n';
+    */
+
     vector<punct> ans;
 
     for(int i=0; i<(int)v.size(); i++)
-        ans.push_back(v[i]);
+        ans.push_back(v[ perm[ i ] ]);
 
-    v = ans;
+
+    v.clear();
+
+    for(auto x : ans)
+    {
+        while((int)v.size() >= 2 && fArie(x, v[(int)v.size()-2], v.back()) < 0 )
+            v.pop_back();
+
+        v.push_back(x);
+    }
+
+    /*
+    cout<<"new poly is\n";
+
+    for(auto it : v)
+    {
+        cout<<it.x<<' '<<it.y<<' '<<'\n';
+    }
+    cout<<"\n\n";
+    */
 }
 
 
 void calcViz(vector<punct> &puncte)
 {
+    /*
+    cout<<"viz got\n";
+
+    for(auto it : puncte)
+        cout<<it.x<<' '<<it.y<<' '<<it.z<<'\n';
+
+    cout<<"\n\n";
+    */
+
     viz.resize((int)puncte.size());
 
     vector< pair<punct, int> > v;
@@ -229,13 +283,31 @@ void calcViz(vector<punct> &puncte)
 
     sort(v.begin(), v.end(), compZ);
 
+    /*
+    cout<<"order is\n";
+
+    for(auto it : v)
+        cout<<it.first.x<<' '<<it.first.y<<' '<<it.first.z<<' '<<' '<<it.second<<'\n';
+    cout<<"\n\n";
+    */
+
+    //cout<<"beg alg\n\n";
+
     for(auto pct : v)
     {
+        //cout<<"add point "<<pct.first.x<<' '<<pct.first.y<<' '<<pct.first.z<<' ';
+
         if(isInside(pct.first, poligon))
+        {
+            //cout<<"inside\n";
             viz[ pct.second ] = false;
+        }
+
 
         else
         {
+            //cout<<"outside\n";
+
             viz[ pct.second ] = true;
             poligon.push_back( pct.first );
 
@@ -244,12 +316,13 @@ void calcViz(vector<punct> &puncte)
     }
 
     /*
+    cout<<"viz output\n";
+
     for(int i=0; i<(int)v.size(); i++)
-        cout<<viz[i];
+        cout<<puncte[i].x<<' '<<puncte[i].y<<' '<<puncte[i].z<<' '<<viz[i]<<'\n';;
     cout<<endl;
     */
 }
-
 
 void deseneaza(float d = 10)
 {
@@ -355,13 +428,15 @@ void deseneaza(float d = 10)
         puncteEcran.push_back( {x, y} );
     }
 
+    calcViz(punctePlan);
+
     for(int i=0;i<(int)muchii.size();i++)
     {
         int id1 = muchii[i].first;
         int id2 = muchii[i].second;
 
-        //if(!viz[id1] || !viz[id2])
-          //  continue;
+        if(!viz[id1] || !viz[id2])
+            continue;
 
         line( puncteEcran[ id1 ].first, puncteEcran[ id1 ].second, puncteEcran[ id2 ].first, puncteEcran[ id2 ].second );
     }
